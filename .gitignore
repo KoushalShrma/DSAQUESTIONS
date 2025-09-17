@@ -1,0 +1,21 @@
+# Build artifacts
+*.exe
+*.o
+*.obj
+*.dll
+*.lib
+
+# Temporary files
+*.tmp
+*~
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Output files
+output.txt
+debug.txt
