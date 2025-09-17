@@ -9,6 +9,126 @@ This document contains all 154 DSA problems with multiple solution approaches.
 
 ## Easy Problems
 
+### Best Time to Buy and Sell Stock
+
+**Problem:** Find the maximum profit you can achieve from buying and selling stock once.
+
+#### 1. Brute Force
+
+**Explanation:**
+Idea: Try every possible buy-sell combination
+For each day we could buy, check all future days we could sell
+
+How it works:
+- For each buy day i, check all sell days j where j > i
+- Calculate profit = prices[j] - prices[i]
+- Keep track of maximum profit seen
+
+**Java Code:**
+```java
+public int maxProfitBruteForce(int[] prices) {
+        int maxProfit = 0;
+        int n = prices.length;
+        
+        // Try every buy day
+        for (int buyDay = 0; buyDay < n - 1; buyDay++) {
+            // Try every sell day after buy day
+            for (int sellDay = buyDay + 1; sellDay < n; sellDay++) {
+                int profit = prices[sellDay] - prices[buyDay];
+                maxProfit = Math.max(maxProfit, profit);
+            }
+        }
+        
+        return maxProfit;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n²) - nested loops through all pairs
+- Space Complexity: O(1) - only using variables
+
+#### 2. Better Approach
+
+**Explanation:**
+Idea: Precompute maximum price for each position from right
+Better because we avoid recalculating max prices repeatedly
+
+How it works:
+- First pass: compute maxPriceFromRight[i] = max price from day i to end
+- Second pass: for each buy day, profit = maxPriceFromRight[i+1] - prices[i]
+
+**Java Code:**
+```java
+public int maxProfitBetter(int[] prices) {
+        int n = prices.length;
+        if (n <= 1) return 0;
+        
+        // Precompute maximum price from each position to the right
+        int[] maxPriceFromRight = new int[n];
+        maxPriceFromRight[n - 1] = prices[n - 1];
+        
+        for (int i = n - 2; i >= 0; i--) {
+            maxPriceFromRight[i] = Math.max(prices[i], maxPriceFromRight[i + 1]);
+        }
+        
+        // Find maximum profit
+        int maxProfit = 0;
+        for (int i = 0; i < n - 1; i++) {
+            int profit = maxPriceFromRight[i + 1] - prices[i];
+            maxProfit = Math.max(maxProfit, profit);
+        }
+        
+        return maxProfit;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n) - two passes through array
+- Space Complexity: O(n) - additional array for max prices
+
+#### 3. Optimal Approach
+
+**Explanation:**
+Idea: Keep track of minimum price seen so far and calculate profit on each day
+This is the most elegant solution - classic DP thinking!
+
+Why it's optimal:
+- Single pass through array
+- Constant space usage
+- Simple and intuitive logic
+
+Key insight:
+- For each day, we can either sell (if we bought on minimum price day)
+- Or update our minimum price if current price is lower
+- We always want to buy at the lowest price we've seen so far
+
+**Java Code:**
+```java
+public int maxProfitOptimal(int[] prices) {
+        if (prices.length <= 1) return 0;
+        
+        int minPrice = prices[0];  // Minimum price seen so far (best buy day)
+        int maxProfit = 0;        // Maximum profit achievable
+        
+        for (int i = 1; i < prices.length; i++) {
+            // If we sell today, what profit would we get?
+            int todayProfit = prices[i] - minPrice;
+            maxProfit = Math.max(maxProfit, todayProfit);
+            
+            // Update minimum price if today's price is lower
+            minPrice = Math.min(minPrice, prices[i]);
+        }
+        
+        return maxProfit;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n) - single pass
+- Space Complexity: O(1) - only using variables
+
+---
+
 ### Palindrome Number
 
 **Problem:** Determine whether an integer is a palindrome (reads the same forward and backward).
@@ -604,6 +724,126 @@ public int lengthOfLongestSubstringOptimal(String s) {
 **Complexity:**
 - Time Complexity: O(n) - each character visited exactly once
 - Space Complexity: O(min(m,n)) - HashMap stores character mappings
+
+---
+
+### Maximum Subarray (Kadane's Algorithm)
+
+**Problem:** Given an integer array nums, find the contiguous subarray with the largest sum.
+
+#### 1. Brute Force
+
+**Explanation:**
+Idea: Check every possible subarray and find the one with maximum sum
+This is like manually checking all possible continuous parts
+
+How it works:
+- Use two nested loops to generate all subarrays
+- For each subarray, calculate its sum
+- Keep track of maximum sum seen
+
+**Java Code:**
+```java
+public int maxSubArrayBruteForce(int[] nums) {
+        int n = nums.length;
+        int maxSum = Integer.MIN_VALUE;
+        
+        // Check all possible subarrays
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j < n; j++) {
+                // Calculate sum of subarray from i to j
+                int currentSum = 0;
+                for (int k = i; k <= j; k++) {
+                    currentSum += nums[k];
+                }
+                maxSum = Math.max(maxSum, currentSum);
+            }
+        }
+        
+        return maxSum;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n³) - O(n²) for subarrays × O(n) for sum calculation
+- Space Complexity: O(1) - only using variables
+
+#### 2. Better Approach
+
+**Explanation:**
+Idea: Calculate subarray sums incrementally instead of recalculating
+Better because we don't recalculate the same sums repeatedly
+
+How it works:
+- For each starting position i, extend the subarray one element at a time
+- Add each new element to the running sum
+- This avoids the inner sum calculation loop
+
+**Java Code:**
+```java
+public int maxSubArrayBetter(int[] nums) {
+        int n = nums.length;
+        int maxSum = Integer.MIN_VALUE;
+        
+        // Try each starting position
+        for (int i = 0; i < n; i++) {
+            int currentSum = 0;
+            
+            // Extend subarray from position i
+            for (int j = i; j < n; j++) {
+                currentSum += nums[j];
+                maxSum = Math.max(maxSum, currentSum);
+            }
+        }
+        
+        return maxSum;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n²) - two nested loops
+- Space Complexity: O(1) - only using variables
+
+#### 3. Optimal Approach
+
+**Explanation:**
+Idea: At each position, decide whether to extend previous subarray or start new one
+This is one of the most elegant algorithms in CS!
+
+Why it's optimal:
+- Single pass through array
+- Constant space
+- Beautiful logic: if current sum becomes negative, start fresh
+
+Key insight:
+- If sum of subarray ending at i-1 is negative, don't extend it
+- Better to start a new subarray from current position
+- Always keep track of maximum sum seen so far
+
+Think of it as: "Should I add this number to my current subarray,
+or is it better to start a new subarray from here?"
+
+**Java Code:**
+```java
+public int maxSubArrayOptimal(int[] nums) {
+        int maxSoFar = nums[0];    // Maximum sum found so far
+        int maxEndingHere = nums[0]; // Maximum sum ending at current position
+        
+        for (int i = 1; i < nums.length; i++) {
+            // Either extend the existing subarray or start new one
+            maxEndingHere = Math.max(nums[i], maxEndingHere + nums[i]);
+            
+            // Update global maximum
+            maxSoFar = Math.max(maxSoFar, maxEndingHere);
+        }
+        
+        return maxSoFar;
+    }
+```
+
+**Complexity:**
+- Time Complexity: O(n) - single pass
+- Space Complexity: O(1) - constant space
 
 ---
 
